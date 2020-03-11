@@ -3,15 +3,15 @@ use protobuf::{parse_from_bytes};
 use super::protos::vector_tile::{*};
 use super::tiles;
 
-pub fn decode(bytes: &[u8]) -> tiles::Tile {
+pub fn decode(bytes: &[u8]) -> Result<tiles::Tile, protobuf::ProtobufError> {
     let mut out : tiles::Tile = Default::default();
-    let tile = parse_from_bytes::<Tile>(&bytes).unwrap();
+    let tile = parse_from_bytes::<Tile>(&bytes)?;
 
     for layer in tile.get_layers() {
         out.layers.push(decode_layer(layer));
     }
 
-    out
+    Ok(out)
 }
 
 fn decode_value(value: &Tile_Value) -> tiles::Value {

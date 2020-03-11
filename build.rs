@@ -18,6 +18,8 @@ fn main() {
         input: &["src/protos/vector_tile.proto"],
         includes: &["src/protos"],
         customize: Customize {
+            lite_runtime: Some(true),
+            serde_derive: Some(true),
             ..Default::default()
         },
     })
