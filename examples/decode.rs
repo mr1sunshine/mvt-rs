@@ -10,6 +10,6 @@ fn main() {
     let mut buffer = Vec::new();
     f.read_to_end(&mut buffer).unwrap();
 
-    let tile = decode(&buffer);
+    let tile = decode(&buffer).unwrap();
     println!("{:?}", tile.layers);
 }
