@@ -2,7 +2,7 @@ use super::*;
 
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Tile {
     layers: Vec<Layer>
 }
