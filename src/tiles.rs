@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use serde_repr::*;
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq)]
+#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Clone, Copy)]
 #[repr(u8)]
 pub enum GeometryType {
     UNKNOWN = 0,
@@ -30,6 +30,20 @@ pub enum Value {
     SintValue(i64),
     #[serde(rename = "bool_value")]
     BoolValue(bool)
+}
+
+impl Clone for Value {
+    fn clone(&self) -> Value {
+        match self {
+            Value::StringValue(v) => Value::StringValue(v.clone()),
+            Value::FloatValue(v) => Value::FloatValue(*v),
+            Value::DoubleValue(v) => Value::DoubleValue(*v),
+            Value::IntValue(v) => Value::IntValue(*v),
+            Value::UintValue(v) => Value::UintValue(*v),
+            Value::SintValue(v) => Value::SintValue(*v),
+            Value::BoolValue(v) => Value::BoolValue(*v),
+        }
+    }
 }
 
 #[derive(Default, Debug, Serialize, Deserialize, PartialEq)]

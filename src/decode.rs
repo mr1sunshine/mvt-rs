@@ -2,8 +2,9 @@ use protobuf::{parse_from_bytes};
 
 use super::protos::vector_tile::{*};
 use super::tiles;
+use super::decoded::Tile as DecodeTile;
 
-pub fn decode(bytes: &[u8]) -> Result<tiles::Tile, protobuf::ProtobufError> {
+pub fn decode(bytes: &[u8]) -> Result<DecodeTile, protobuf::ProtobufError> {
     let mut out : tiles::Tile = Default::default();
     let tile = parse_from_bytes::<Tile>(&bytes)?;
 
@@ -11,7 +12,7 @@ pub fn decode(bytes: &[u8]) -> Result<tiles::Tile, protobuf::ProtobufError> {
         out.layers.push(decode_layer(layer));
     }
 
-    Ok(out)
+    Ok(DecodeTile::new(&out))
 }
 
 fn decode_value(value: &Tile_Value) -> tiles::Value {
