@@ -62,8 +62,26 @@ impl Layer {
 pub struct Feature {
     id: u64,
     metadata: HashMap<String, tiles::Value>,
-    commands: Vec<Command>,
+    geometry: Vec<Vec<[i64; 2]>>,
+    // commands: Vec<Command>,
     r#type: tiles::GeometryType
+}
+
+fn decode_zigzag(input: u32) -> i64 {
+    return (input as i64 >> 1) ^ (-(input as i64 & 1));
+}
+
+fn process_command(command_type: CommandType, count : u32, i: &mut usize, data: &Vec<u32>) -> Vec<Command> {
+    let mut out = Vec::new();
+    for _ in 0..count {
+        let x = data[*i];
+        *i += 1;
+        let y = data[*i];
+        *i += 1;
+        out.push(Command{command_type: command_type, x: decode_zigzag(x), y: decode_zigzag(y)});
+    }
+
+    return out;
 }
 
 impl Feature {
@@ -80,25 +98,39 @@ impl Feature {
             let count = feature.geometry[i] >> 3;
             i += 1;
             if command_id == 1 {
-                for _ in 0..count {
-                    let x = feature.geometry[i] as i64;
-                    i += 1;
-                    let y = feature.geometry[i] as i64;
-                    i += 1;
-                    commands.push(Command::MoveTo(((x >> 1) ^ (-(x & 1))) as f32, ((y >> 1) ^ (-(y & 1))) as f32))
-                }
+                commands.append(&mut process_command(CommandType::MoveTo, count, &mut i, &feature.geometry));
             } else if command_id == 2 {
-                for _ in 0..count {
-                    let x = feature.geometry[i] as i64;
-                    i += 1;
-                    let y = feature.geometry[i] as i64;
-                    i += 1;
-                    commands.push(Command::LineTo(((x >> 1) ^ (-(x & 1))) as f32, ((y >> 1) ^ (-(y & 1))) as f32))
-                }
+                commands.append(&mut process_command(CommandType::LineTo, count, &mut i, &feature.geometry));
             } else if command_id == 7 {
-                commands.push(Command::ClosePath);
+                commands.push(Command{command_type: CommandType::ClosePath, x: 0, y: 0});
             } else {
                 assert!(false);
+            }
+        }
+
+        let mut geometry = Vec::new();
+        let mut current_x = 0;
+        let mut current_y = 0;
+        let mut element = Vec::new();
+        for command in &commands {
+            match command.command_type {
+                CommandType::MoveTo => {
+                    element = Vec::new();
+
+                    current_x += command.x;
+                    current_y += command.y;
+
+                    element.push([current_x, current_y]);
+                },
+                CommandType::LineTo => {
+                    current_x += command.x;
+                    current_y += command.y;
+
+                    element.push([current_x, current_y]);
+                },
+                CommandType::ClosePath => {
+                    geometry.push(element.clone());
+                }
             }
         }
 
@@ -106,7 +138,8 @@ impl Feature {
             id: feature.id,
             metadata: hm,
             r#type: feature.r#type,
-            commands: commands
+            // commands: commands,
+            geometry: geometry
         }
     }
 
@@ -118,9 +151,9 @@ impl Feature {
         &self.metadata
     }
 
-    pub fn commands(&self) -> &Vec<Command> {
-        &self.commands
-    }
+    // pub fn commands(&self) -> &Vec<Command> {
+    //     &self.commands
+    // }
 
     pub fn r#type(&self) -> tiles::GeometryType {
         self.r#type
@@ -128,8 +161,15 @@ impl Feature {
 }
 
 #[derive(Debug)]
-pub enum Command {
-    MoveTo(f32, f32),
-    LineTo(f32, f32),
+pub struct Command {
+    command_type: CommandType,
+    x: i64,
+    y: i64
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum CommandType {
+    MoveTo,
+    LineTo,
     ClosePath
 }
