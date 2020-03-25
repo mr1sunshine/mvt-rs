@@ -158,6 +158,10 @@ impl Feature {
     pub fn r#type(&self) -> tiles::GeometryType {
         self.r#type
     }
+
+    pub fn geometry(&self) -> &Vec<Vec<[i64; 2]>> {
+        &self.geometry
+    }
 }
 
 #[derive(Debug)]
