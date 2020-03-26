@@ -1,4 +1,4 @@
-use mvt::decode_with_json;
+use mvt::{decode, FeatureWithJson};
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -11,6 +11,6 @@ fn main() {
     let mut buffer = Vec::new();
     f.read_to_end(&mut buffer).unwrap();
 
-    let tile = decode_with_json(&buffer).unwrap();
+    let tile = decode::<FeatureWithJson>(&buffer).unwrap();
     println!("{:?}", tile);
 }

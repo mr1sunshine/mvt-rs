@@ -1,4 +1,4 @@
-use mvt::{decode, FeatureWithCommands};
+use mvt::{decode, FeatureWithCoordinates};
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -11,6 +11,6 @@ fn main() {
     let mut buffer = Vec::new();
     f.read_to_end(&mut buffer).unwrap();
 
-    let tile = decode::<FeatureWithCommands>(&buffer).unwrap();
+    let tile = decode::<FeatureWithCoordinates>(&buffer).unwrap();
     println!("{:?}", tile);
 }

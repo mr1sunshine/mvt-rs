@@ -16,5 +16,4 @@ pub use tile::Tile;
 
 mod decode;
 
-pub use decode::decode_with_json as decode_with_json;
-pub use decode::decode_with_commands as decode_with_commands;
+pub use decode::decode as decode;

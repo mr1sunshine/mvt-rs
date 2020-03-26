@@ -104,6 +104,25 @@ impl Feature for FeatureWithCommands {
     }
 }
 
+
+impl FeatureWithCommands {
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+
+    pub fn metadata(&self) -> &HashMap<String, Value> {
+        &self.metadata
+    }
+
+    pub fn commands(&self) -> &Vec<Command> {
+        &self.commands
+    }
+
+    pub fn r#type(&self) -> GeometryType {
+        self.r#type
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum Command {
     MoveTo(i64, i64),
@@ -111,10 +130,53 @@ pub enum Command {
     ClosePath
 }
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct FeatureWithCoordinates {
     id: u64,
     metadata: HashMap<String, Value>,
     geometry: Vec<Vec<[i64; 2]>>,
     r#type: GeometryType
+}
+
+impl Feature for FeatureWithCoordinates {
+    fn new(feature: &Tile_Feature, keys: &Vec<String>, values: &Vec<Value>) -> Self {
+        let feature_with_commands = FeatureWithCommands::new(feature, keys, values);
+
+        let mut geometry = Vec::new();
+        let mut current_x = 0;
+        let mut current_y = 0;
+        let mut element = Vec::new();
+        for command in feature_with_commands.commands() {
+            match command {
+                Command::MoveTo(x, y) => {
+                    element = Vec::new();
+
+                    current_x += x;
+                    current_y += y;
+
+                    element.push([current_x, current_y]);
+                },
+                Command::LineTo(x, y) => {
+                    current_x += x;
+                    current_y += y;
+
+                    element.push([current_x, current_y]);
+                },
+                Command::ClosePath => {
+                    geometry.push(element.clone());
+                }
+            }
+        }
+
+        Self {
+            id: feature_with_commands.id(),
+            metadata: feature_with_commands.metadata().clone(),
+            r#type: feature_with_commands.r#type(),
+            geometry: geometry
+        }
+    }
+
+    fn default() -> Self {
+        Default::default()
+    }
 }
