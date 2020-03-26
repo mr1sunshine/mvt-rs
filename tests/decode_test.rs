@@ -1,7 +1,5 @@
-extern crate glob;
-use self::glob::glob;
-use mvt::decode;
-use mvt::Tile;
+use glob::glob;
+use mvt::{decode_with_json, Tile, FeatureWithJson, GeometryType};
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -53,7 +51,7 @@ fn decode_fixtures() {
         let mut f_tile = File::open(&path).unwrap();
         let mut buffer = Vec::new();
         f_tile.read_to_end(&mut buffer).unwrap();
-        let tile = decode(&buffer);
+        let tile = decode_with_json(&buffer);
         let tile = match tile {
             Ok(t) => t,
             Err(error) => {
@@ -67,7 +65,7 @@ fn decode_fixtures() {
         let mut f_json = File::open(&json_tile_path).unwrap();
         let mut json = String::new();
         f_json.read_to_string(&mut json).unwrap();
-        let reference : Result<Tile, serde_json::error::Error> = serde_json::from_str(&json);
+        let reference : Result<Tile<FeatureWithJson>, serde_json::error::Error> = serde_json::from_str(&json);
         match reference {
             Ok(r) => {
                 assert_eq!(r, tile);
