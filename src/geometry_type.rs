@@ -1,4 +1,3 @@
-use serde::{Serialize, Deserialize};
 use serde_repr::*;
 
 use crate::protos::vector_tile::Tile_GeomType;

@@ -34,12 +34,12 @@ where F: Feature + std::default::Default {
 
     out.version = layer.get_version();
     out.name = layer.get_name().to_string();
-    for f in layer.get_features() {
-        out.features.push(F::new(f));
-    }
     out.keys = layer.get_keys().to_vec();
     for v in layer.get_values() {
         out.values.push(Value::new(v));
+    }
+    for f in layer.get_features() {
+        out.features.push(F::new(f, &out.keys, &out.values));
     }
     out.extent = layer.get_extent();
 

@@ -1,5 +1,4 @@
-use mvt::decode_with_json;
-// use mvt::Tile;
+use mvt::decode_with_commands;
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -12,9 +11,6 @@ fn main() {
     let mut buffer = Vec::new();
     f.read_to_end(&mut buffer).unwrap();
 
-    let tile = decode_with_json(&buffer).unwrap();
+    let tile = decode_with_commands(&buffer).unwrap();
     println!("{:?}", tile);
-
-    // let decoded_tile = Tile::new(&tile);
-    // println!("{:?}", decoded_tile);
 }

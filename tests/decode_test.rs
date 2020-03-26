@@ -1,5 +1,5 @@
 use glob::glob;
-use mvt::{decode_with_json, Tile, FeatureWithJson, GeometryType};
+use mvt::{decode_with_json, Tile, FeatureWithJson};
 
 use std::fs::File;
 use std::io::prelude::*;
