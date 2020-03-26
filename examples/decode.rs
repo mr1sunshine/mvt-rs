@@ -1,5 +1,5 @@
-use rust_mvt::decode;
-use rust_mvt::Tile;
+use mvt::decode_with_json;
+// use mvt::Tile;
 
 use std::fs::File;
 use std::io::prelude::*;
@@ -12,7 +12,7 @@ fn main() {
     let mut buffer = Vec::new();
     f.read_to_end(&mut buffer).unwrap();
 
-    let tile = decode(&buffer).unwrap();
+    let tile = decode_with_json(&buffer).unwrap();
     println!("{:?}", tile);
 
     // let decoded_tile = Tile::new(&tile);

@@ -1,7 +1,7 @@
 extern crate glob;
 use self::glob::glob;
-use rust_mvt::decode::decode;
-use rust_mvt::tiles::Tile;
+use mvt::decode;
+use mvt::Tile;
 
 use std::fs::File;
 use std::io::prelude::*;

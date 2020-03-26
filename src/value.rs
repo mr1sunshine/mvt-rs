@@ -1,18 +1,6 @@
 use serde::{Serialize, Deserialize};
-use serde_repr::*;
 
-#[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Clone, Copy)]
-#[repr(u8)]
-pub enum GeometryType {
-    UNKNOWN = 0,
-    POINT = 1,
-    LINESTRING = 2,
-    POLYGON = 3
-}
-
-impl Default for GeometryType {
-    fn default() -> Self { GeometryType::UNKNOWN }
-}
+use crate::protos::vector_tile::Tile_Value;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum Value {
@@ -32,6 +20,12 @@ pub enum Value {
     BoolValue(bool)
 }
 
+impl Value {
+    pub fn new(value: &Tile_Value) -> Self {
+        decode_value(value)
+    }
+}
+
 impl Clone for Value {
     fn clone(&self) -> Value {
         match self {
@@ -46,34 +40,28 @@ impl Clone for Value {
     }
 }
 
-#[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Feature {
-    #[serde(default)]
-    pub id: u64,
-    pub tags: Vec<u32>,
-    #[serde(default)]
-    pub r#type: GeometryType,
-    #[serde(default)]
-    pub geometry: Vec<u32>
-}
+fn decode_value(value: &Tile_Value) -> Value {
+    if value.has_string_value() {
+        return Value::StringValue(value.get_string_value().to_string());
+    }
+    else if value.has_float_value() {
+        return Value::FloatValue(value.get_float_value());
+    }
+    else if value.has_double_value() {
+        return Value::DoubleValue(value.get_double_value());
+    }
+    else if value.has_int_value() {
+        return Value::IntValue(value.get_int_value());
+    }
+    else if value.has_uint_value() {
+        return Value::UintValue(value.get_uint_value());
+    }
+    else if value.has_sint_value() {
+        return Value::SintValue(value.get_sint_value());
+    }
+    else if value.has_bool_value() {
+        return Value::BoolValue(value.get_bool_value());
+    }
 
-#[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Layer {
-    pub version: u32,
-    pub name: String,
-    pub features: Vec<Feature>,
-    pub keys: Vec<String>,
-    pub values: Vec<Value>,
-    #[serde(default = "default_extent")]
-    pub extent: u32
-}
-
-fn default_extent() -> u32 {
-    4096
-}
-
-#[derive(Default,Debug, Serialize, Deserialize, PartialEq)]
-pub struct Tile {
-    #[serde(default)]
-    pub layers: Vec<Layer>
+    Value::StringValue("".to_string())
 }

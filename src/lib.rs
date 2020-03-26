@@ -1,11 +1,11 @@
 mod protos;
 
+mod geometry_type;
+mod value;
+mod feature;
+mod layer;
+mod tile;
+
 mod decode;
-mod tiles;
 
-mod decoded;
-
-pub use decode::decode as decode;
-pub use decoded::Tile as Tile;
-pub use decoded::Command as Command;
-pub use tiles::GeometryType as GeometryType;
+pub use decode::decode_with_json as decode_with_json;
