@@ -10,6 +10,14 @@ The purpose of this library is to provide ability to get decoded information fro
 
 Please see examples below for more detailed information.
 
+## Usage
+
+As described above you can use this library in three different as follow:
+```rust
+    let tile_with_json = decode::<FeatureWithJson>(&buffer).unwrap();
+    let tile_with_commands = decode::<FeatureWithCommands>(&buffer).unwrap();
+    let tile_with_coordinates = decode::<FeatureWithCoordinates>(&buffer).unwrap();
+```
 ## Tests
 
 For testing purpose we use fixtures available here: [mvt-fixtures](https://github.com/mapbox/mvt-fixtures)
