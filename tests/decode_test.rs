@@ -1,11 +1,13 @@
-use glob::glob;
 use mvt::{decode, Tile, FeatureWithJson};
 
+use glob::glob;
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use serde::{Serialize, Deserialize};
+
+use git2::Repository;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Validity {
@@ -25,6 +27,14 @@ struct Info {
 
 #[test]
 fn decode_fixtures() {
+    if !Path::new("fixtures").exists() {
+        let url = "https://github.com/mapbox/mvt-fixtures";
+        match Repository::clone(url, "fixtures") {
+            Err(e) => panic!("failed to clone: {}", e),
+            _ => ()
+        };
+    }
+
     let tiles = glob("./fixtures/fixtures/**/tile.mvt").unwrap();
 
     for tile in tiles {
