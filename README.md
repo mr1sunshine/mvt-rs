@@ -1,4 +1,4 @@
-# rust-mvt
+# mvt-rs
 
 A library for decoding Mapbox vector tiles according to [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec).
 
@@ -12,7 +12,7 @@ Please see examples below for more detailed information.
 
 ## Tests
 
-For testing purpose we use fixtures available here : [mvt-fixtures](https://github.com/mapbox/mvt-fixtures)
+For testing purpose we use fixtures available here: [mvt-fixtures](https://github.com/mapbox/mvt-fixtures)
 
 To run test cases:
 ```bash
