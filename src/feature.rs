@@ -134,44 +134,23 @@ pub enum Command {
 pub struct FeatureWithCoordinates {
     id: u64,
     metadata: HashMap<String, Value>,
-    geometry: Vec<Vec<[i64; 2]>>,
-    r#type: GeometryType
+    geometry: Geometry
 }
 
 impl Feature for FeatureWithCoordinates {
     fn new(feature: &Tile_Feature, keys: &Vec<String>, values: &Vec<Value>) -> Self {
         let feature_with_commands = FeatureWithCommands::new(feature, keys, values);
-
-        let mut geometry = Vec::new();
-        let mut current_x = 0;
-        let mut current_y = 0;
-        let mut element = Vec::new();
-        for command in feature_with_commands.commands() {
-            match command {
-                Command::MoveTo(x, y) => {
-                    element = Vec::new();
-
-                    current_x += x;
-                    current_y += y;
-
-                    element.push([current_x, current_y]);
-                },
-                Command::LineTo(x, y) => {
-                    current_x += x;
-                    current_y += y;
-
-                    element.push([current_x, current_y]);
-                },
-                Command::ClosePath => {
-                    geometry.push(element.clone());
-                }
-            }
-        }
+        let commands = feature_with_commands.commands();
+        let geometry = match feature_with_commands.r#type {
+            GeometryType::POINT => get_geometry_for_point(commands),
+            GeometryType::LINESTRING => get_geometry_for_linestring(commands),
+            GeometryType::POLYGON => get_geometry_for_polygon(commands),
+            GeometryType::UNKNOWN => unreachable!()
+        };
 
         Self {
             id: feature_with_commands.id(),
             metadata: feature_with_commands.metadata().clone(),
-            r#type: feature_with_commands.r#type(),
             geometry: geometry
         }
     }
@@ -179,4 +158,114 @@ impl Feature for FeatureWithCoordinates {
     fn default() -> Self {
         Default::default()
     }
+}
+
+fn get_geometry_for_point(commands : &Vec<Command>) -> Geometry {
+    if commands.is_empty() {
+        assert!(false, "Geometry POINT should contain at least one point");
+    }
+
+    if commands.len() == 1 {
+        return assert_matches!(commands[0], Command::MoveTo(x, y) => Geometry::Point([x.clone(), y.clone()]));
+    }
+
+    let mut points = Vec::new();
+
+    for command in commands {
+        match command {
+            Command::MoveTo(x, y) => points.push([x.clone(), y.clone()]),
+            _ => assert!(false, "Geometry MULTYPOINT should contain only MoveTo commands"),
+        }
+    }
+
+    Geometry::MultyPoint(points)
+}
+
+fn get_geometry_for_linestring(commands : &Vec<Command>) -> Geometry {
+    let mut geometry = Vec::new();
+    let mut current_x = 0;
+    let mut current_y = 0;
+    let mut element = Vec::new();
+    for command in commands {
+        match command {
+            Command::MoveTo(x, y) => {
+                element = Vec::new();
+
+                current_x += x;
+                current_y += y;
+
+                element.push([current_x, current_y]);
+            },
+            Command::LineTo(x, y) => {
+                current_x += x;
+                current_y += y;
+
+                element.push([current_x, current_y]);
+            },
+            Command::ClosePath => {
+                geometry.push(element.clone());
+            }
+        }
+    }
+
+    if geometry.len() == 0 {
+        assert!(false, "Geometry LINESTRING failed to parsed");
+        unreachable!();
+    } else if geometry.len() == 1 {
+        Geometry::LineString(geometry[0].clone())
+    } else {
+        Geometry::MultyLineString(geometry)
+    }
+}
+
+fn get_geometry_for_polygon(commands : &Vec<Command>) -> Geometry {
+    let mut geometry = Vec::new();
+    let mut current_x = 0;
+    let mut current_y = 0;
+    let mut element = Vec::new();
+    for command in commands {
+        match command {
+            Command::MoveTo(x, y) => {
+                element = Vec::new();
+
+                current_x += x;
+                current_y += y;
+
+                element.push([current_x, current_y]);
+            },
+            Command::LineTo(x, y) => {
+                current_x += x;
+                current_y += y;
+
+                element.push([current_x, current_y]);
+            },
+            Command::ClosePath => {
+                geometry.push(element.clone());
+            }
+        }
+    }
+
+    // TODO: The following block to calculate is wrong. We should parse polygons based on winding rules
+    if geometry.len() == 0 {
+        assert!(false, "Geometry POLYGON failed to parsed");
+        unreachable!();
+    } else if geometry.len() == 1 {
+        Geometry::Polygon(geometry)
+    } else {
+        Geometry::MultyPolygon(vec![geometry])
+    }
+}
+
+#[derive(Debug, Clone)]
+enum Geometry {
+    Point([i64; 2]),
+    MultyPoint(Vec<[i64; 2]>),
+    LineString(Vec<[i64; 2]>),
+    MultyLineString(Vec<Vec<[i64; 2]>>),
+    Polygon(Vec<Vec<[i64; 2]>>),
+    MultyPolygon(Vec<Vec<Vec<[i64; 2]>>>),
+}
+
+impl Default for Geometry {
+    fn default() -> Self { Geometry::Point([0, 0]) }
 }

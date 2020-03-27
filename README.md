@@ -42,7 +42,7 @@ Tile { layers: [Layer { version: 2, name: "howdy", features: [FeatureWithCommand
 - Decoding with coordinates output:
 ```bash
 cargo run --example decode_with_coordinates fixtures/fixtures/026/tile.mvt
-    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
      Running `target/debug/examples/decode_with_coordinates fixtures/fixtures/026/tile.mvt`
-Tile { layers: [Layer { version: 2, name: "howdy", features: [FeatureWithCoordinates { id: 1, metadata: {}, geometry: [], type: POINT }], keys: [], values: [StringValue("")], extent: 4096 }] }
+Tile { layers: [Layer { version: 2, name: "howdy", features: [FeatureWithCoordinates { id: 1, metadata: {}, geometry: Point([25, 17]) }], keys: [], values: [StringValue("")], extent: 4096 }] }
 ```
