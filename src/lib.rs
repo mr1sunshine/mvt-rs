@@ -10,11 +10,12 @@ mod feature;
 mod layer;
 mod tile;
 
-pub use geometry_type::GeometryType as GeometryType;
 pub use value::Value as Value;
 pub use feature::FeatureWithJson as FeatureWithJson;
 pub use feature::FeatureWithCommands as FeatureWithCommands;
 pub use feature::FeatureWithCoordinates as FeatureWithCoordinates;
+pub use feature::Geometry as Geometry;
+pub use feature::Polygon as Polygon;
 pub use layer::Layer as Layer;
 pub use tile::Tile;
 

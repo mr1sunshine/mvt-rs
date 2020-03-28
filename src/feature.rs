@@ -157,6 +157,20 @@ impl Feature for FeatureWithCoordinates {
     }
 }
 
+impl FeatureWithCoordinates {
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+
+    pub fn metadata(&self) -> &HashMap<String, Value> {
+        &self.metadata
+    }
+
+    pub fn geometry(&self) -> &Geometry {
+        &self.geometry
+    }
+}
+
 fn get_geometry_for_point(commands : &Vec<Command>) -> Geometry {
     if commands.is_empty() {
         assert!(false, "Geometry POINT should contain at least one point");
@@ -261,7 +275,7 @@ fn get_geometry_for_polygon(commands : &Vec<Command>) -> Geometry {
 }
 
 #[derive(Debug, Clone)]
-enum Geometry {
+pub enum Geometry {
     Point([i64; 2]),
     MultyPoint(Vec<[i64; 2]>),
     LineString(Vec<[i64; 2]>),
@@ -277,7 +291,7 @@ impl Default for Geometry {
 type Ring = Vec<[i64; 2]>;
 
 #[derive(Debug, Clone)]
-struct Polygon {
+pub struct Polygon {
     exterior_ring: Ring,
     interior_rings: Vec<Ring>
 }
@@ -292,5 +306,13 @@ impl Polygon {
 
     pub fn add_ring(&mut self, ring: Ring) {
         self.interior_rings.push(ring)
+    }
+
+    pub fn exterior_ring(&self) -> &Ring {
+        &self.exterior_ring
+    }
+
+    pub fn interior_rings(&self) -> &Vec<Ring> {
+        &self.interior_rings
     }
 }
