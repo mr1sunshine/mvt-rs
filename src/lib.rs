@@ -17,7 +17,7 @@ pub use feature::FeatureWithCoordinates as FeatureWithCoordinates;
 pub use feature::Geometry as Geometry;
 pub use feature::Polygon as Polygon;
 pub use layer::Layer as Layer;
-pub use tile::Tile;
+pub use tile::Tile as Tile;
 
 mod decode;
 
