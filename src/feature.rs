@@ -182,39 +182,42 @@ fn get_geometry_for_point(commands : &Vec<Command>) -> Geometry {
 }
 
 fn get_geometry_for_linestring(commands : &Vec<Command>) -> Geometry {
-    let mut geometry = Vec::new();
+    let mut linestrings = Vec::new();
     let mut current_x = 0;
     let mut current_y = 0;
-    let mut element = Vec::new();
     for command in commands {
         match command {
             Command::MoveTo(x, y) => {
-                element = Vec::new();
+                linestrings.push(Vec::new());
 
                 current_x += x;
                 current_y += y;
 
-                element.push([current_x, current_y]);
+                if let Some(last) = linestrings.last_mut() {
+                    last.push([current_x, current_y]);
+                }
             },
             Command::LineTo(x, y) => {
                 current_x += x;
                 current_y += y;
 
-                element.push([current_x, current_y]);
+                if let Some(last) = linestrings.last_mut() {
+                    last.push([current_x, current_y]);
+                }
             },
             Command::ClosePath => {
-                geometry.push(element.clone());
+                assert!(false, "Unexpected ClosePath for LINESTRING");
             }
         }
     }
 
-    if geometry.len() == 0 {
+    if linestrings.len() == 0 {
         assert!(false, "Geometry LINESTRING failed to parsed");
         unreachable!();
-    } else if geometry.len() == 1 {
-        Geometry::LineString(geometry[0].clone())
+    } else if linestrings.len() == 1 {
+        Geometry::LineString(linestrings[0].clone())
     } else {
-        Geometry::MultyLineString(geometry)
+        Geometry::MultyLineString(linestrings)
     }
 }
 
