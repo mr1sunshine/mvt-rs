@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::protos::vector_tile::Tile_Feature;
+use crate::utils::{decode_zigzag, signed_area};
 
 use super::geometry_type::GeometryType;
 use super::value::Value;
@@ -44,10 +45,6 @@ pub struct FeatureWithCommands {
     metadata: HashMap<String, Value>,
     commands: Vec<Command>,
     r#type: GeometryType
-}
-
-fn decode_zigzag(input: u32) -> i64 {
-    return (input as i64 >> 1) ^ (-(input as i64 & 1));
 }
 
 impl Feature for FeatureWithCommands {
@@ -222,40 +219,44 @@ fn get_geometry_for_linestring(commands : &Vec<Command>) -> Geometry {
 }
 
 fn get_geometry_for_polygon(commands : &Vec<Command>) -> Geometry {
-    let mut geometry = Vec::new();
+    let mut geometry : Vec<Polygon> = Vec::new();
     let mut current_x = 0;
     let mut current_y = 0;
-    let mut element = Vec::new();
+    let mut polygon = Vec::new();
     for command in commands {
         match command {
             Command::MoveTo(x, y) => {
-                element = Vec::new();
-
                 current_x += x;
                 current_y += y;
 
-                element.push([current_x, current_y]);
+                polygon.push([current_x, current_y]);
             },
             Command::LineTo(x, y) => {
                 current_x += x;
                 current_y += y;
 
-                element.push([current_x, current_y]);
+                polygon.push([current_x, current_y]);
             },
             Command::ClosePath => {
-                geometry.push(element.clone());
+                if signed_area(&polygon) > 0.0 {
+                    geometry.push(Polygon::new(polygon));
+                } else {
+                    if let Some(last) = geometry.last_mut() {
+                        last.add_ring(polygon);
+                    }
+                }
+                polygon = Vec::new();
             }
         }
     }
 
-    // TODO: The following block to calculate is wrong. We should parse polygons based on winding rules
     if geometry.len() == 0 {
         assert!(false, "Geometry POLYGON failed to parsed");
         unreachable!();
     } else if geometry.len() == 1 {
-        Geometry::Polygon(geometry)
+        Geometry::Polygon(geometry[0].clone())
     } else {
-        Geometry::MultyPolygon(vec![geometry])
+        Geometry::MultyPolygon(geometry)
     }
 }
 
@@ -265,10 +266,31 @@ enum Geometry {
     MultyPoint(Vec<[i64; 2]>),
     LineString(Vec<[i64; 2]>),
     MultyLineString(Vec<Vec<[i64; 2]>>),
-    Polygon(Vec<Vec<[i64; 2]>>),
-    MultyPolygon(Vec<Vec<Vec<[i64; 2]>>>),
+    Polygon(Polygon),
+    MultyPolygon(Vec<Polygon>),
 }
 
 impl Default for Geometry {
     fn default() -> Self { Geometry::Point([0, 0]) }
+}
+
+type Ring = Vec<[i64; 2]>;
+
+#[derive(Debug, Clone)]
+struct Polygon {
+    exterior_ring: Ring,
+    interior_rings: Vec<Ring>
+}
+
+impl Polygon {
+    pub fn new(ring: Ring) -> Self {
+        Self {
+            exterior_ring: ring,
+            interior_rings: Vec::new()
+        }
+    }
+
+    pub fn add_ring(&mut self, ring: Ring) {
+        self.interior_rings.push(ring)
+    }
 }

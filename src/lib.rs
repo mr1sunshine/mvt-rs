@@ -2,6 +2,7 @@
 extern crate assert_matches;
 
 mod protos;
+mod utils;
 
 mod geometry_type;
 mod value;
