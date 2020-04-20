@@ -5,7 +5,7 @@ use crate::protos::vector_tile::Tile as ProtoTile;
 use super::feature::Feature;
 use super::layer::Layer;
 
-#[derive(Default,Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Default,Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Tile<F>
 where F: Feature + std::default::Default {
     #[serde(default)]

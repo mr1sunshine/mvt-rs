@@ -5,7 +5,7 @@ use crate::protos::vector_tile::Tile_Layer;
 use super::feature::Feature;
 use super::value::Value;
 
-#[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Layer<F>
 where F: Feature + std::default::Default {
     pub version: u32,
