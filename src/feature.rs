@@ -17,7 +17,7 @@ pub trait Feature {
 pub struct FeatureWithJson {
     #[serde(default)]
     pub id: u64,
-    pub properties: HashMap<String, Value>,
+    pub tags: Vec<u32>,
     #[serde(default)]
     pub r#type: GeometryType,
     #[serde(default)]
@@ -25,16 +25,12 @@ pub struct FeatureWithJson {
 }
 
 impl Feature for FeatureWithJson {
-    fn new(feature: &Tile_Feature, keys: &Vec<String>, values: &Vec<Value>) -> Self {
+    fn new(feature: &Tile_Feature, _: &Vec<String>, _: &Vec<Value>) -> Self {
         let tags = feature.get_tags().to_vec();
-        let mut hm = HashMap::new();
-        for i in (0..tags.len()).step_by(2) {
-            hm.insert(keys[tags[i] as usize].clone(), values[tags[i + 1] as usize].clone());
-        }
 
         Self {
             id: feature.get_id(),
-            properties: hm,
+            tags: tags,
             r#type: GeometryType::new(feature.get_field_type()),
             geometry: feature.get_geometry().to_vec()
         }
@@ -42,12 +38,6 @@ impl Feature for FeatureWithJson {
 
     fn default() -> Self {
         Default::default()
-    }
-}
-
-impl FeatureWithJson {
-    pub fn properties(&self) -> &HashMap<String, Value> {
-        &self.properties
     }
 }
 
@@ -62,6 +52,10 @@ pub struct FeatureWithCommands {
 impl Feature for FeatureWithCommands {
     fn new(feature: &Tile_Feature, keys: &Vec<String>, values: &Vec<Value>) -> Self {
         let feature_with_json = FeatureWithJson::new(feature, keys, values);
+        let mut hm = HashMap::new();
+        for i in (0..feature_with_json.tags.len()).step_by(2) {
+            hm.insert(keys[feature_with_json.tags[i] as usize].clone(), values[feature_with_json.tags[i + 1] as usize].clone());
+        }
 
         let mut commands = Vec::new();
         let mut i = 0;
@@ -96,7 +90,7 @@ impl Feature for FeatureWithCommands {
 
         Self {
             id: feature_with_json.id,
-            properties: feature_with_json.properties().clone(),
+            properties: hm,
             r#type: feature_with_json.r#type,
             commands: commands
         }

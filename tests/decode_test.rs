@@ -69,7 +69,7 @@ fn decode_fixtures() {
                 continue;
             },
         };
-
+        println!("{:#?}", tile);
         // Parse json reference
         let json_tile_path = path.parent().unwrap().join("tile.json");
         let mut f_json = File::open(&json_tile_path).unwrap();
@@ -81,6 +81,7 @@ fn decode_fixtures() {
                 assert_eq!(r, tile);
             },
             Err(error) => {
+                println!("{}", error);
                 assert!(!i.validity.v1 || !i.validity.v2, error);
             },
         };
