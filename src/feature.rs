@@ -17,7 +17,7 @@ pub trait Feature {
 pub struct FeatureWithJson {
     #[serde(default)]
     pub id: u64,
-    pub tags: Vec<u32>,
+    pub properties: HashMap<String, Value>,
     #[serde(default)]
     pub r#type: GeometryType,
     #[serde(default)]
@@ -25,10 +25,16 @@ pub struct FeatureWithJson {
 }
 
 impl Feature for FeatureWithJson {
-    fn new(feature: &Tile_Feature, _: &Vec<String>, _: &Vec<Value>) -> Self {
+    fn new(feature: &Tile_Feature, keys: &Vec<String>, values: &Vec<Value>) -> Self {
+        let tags = feature.get_tags().to_vec();
+        let mut hm = HashMap::new();
+        for i in (0..tags.len()).step_by(2) {
+            hm.insert(keys[tags[i] as usize].clone(), values[tags[i + 1] as usize].clone());
+        }
+
         Self {
             id: feature.get_id(),
-            tags: feature.get_tags().to_vec(),
+            properties: hm,
             r#type: GeometryType::new(feature.get_field_type()),
             geometry: feature.get_geometry().to_vec()
         }
@@ -39,10 +45,16 @@ impl Feature for FeatureWithJson {
     }
 }
 
+impl FeatureWithJson {
+    pub fn properties(&self) -> &HashMap<String, Value> {
+        &self.properties
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct FeatureWithCommands {
     id: u64,
-    metadata: HashMap<String, Value>,
+    properties: HashMap<String, Value>,
     commands: Vec<Command>,
     r#type: GeometryType
 }
@@ -50,12 +62,6 @@ pub struct FeatureWithCommands {
 impl Feature for FeatureWithCommands {
     fn new(feature: &Tile_Feature, keys: &Vec<String>, values: &Vec<Value>) -> Self {
         let feature_with_json = FeatureWithJson::new(feature, keys, values);
-
-        let tags = &feature_with_json.tags;
-        let mut hm = HashMap::new();
-        for i in (0..tags.len()).step_by(2) {
-            hm.insert(keys[tags[i] as usize].clone(), values[tags[i + 1] as usize].clone());
-        }
 
         let mut commands = Vec::new();
         let mut i = 0;
@@ -90,7 +96,7 @@ impl Feature for FeatureWithCommands {
 
         Self {
             id: feature_with_json.id,
-            metadata: hm,
+            properties: feature_with_json.properties().clone(),
             r#type: feature_with_json.r#type,
             commands: commands
         }
@@ -107,8 +113,8 @@ impl FeatureWithCommands {
         self.id
     }
 
-    pub fn metadata(&self) -> &HashMap<String, Value> {
-        &self.metadata
+    pub fn properties(&self) -> &HashMap<String, Value> {
+        &self.properties
     }
 
     pub fn commands(&self) -> &Vec<Command> {
@@ -130,7 +136,7 @@ pub enum Command {
 #[derive(Default, Debug)]
 pub struct FeatureWithCoordinates {
     id: u64,
-    metadata: HashMap<String, Value>,
+    properties: HashMap<String, Value>,
     geometry: Geometry
 }
 
@@ -147,7 +153,7 @@ impl Feature for FeatureWithCoordinates {
 
         Self {
             id: feature_with_commands.id(),
-            metadata: feature_with_commands.metadata().clone(),
+            properties: feature_with_commands.properties().clone(),
             geometry: geometry
         }
     }
@@ -162,8 +168,8 @@ impl FeatureWithCoordinates {
         self.id
     }
 
-    pub fn metadata(&self) -> &HashMap<String, Value> {
-        &self.metadata
+    pub fn properties(&self) -> &HashMap<String, Value> {
+        &self.properties
     }
 
     pub fn geometry(&self) -> &Geometry {
